@@ -131,8 +131,6 @@ class AutoDisplay:
             xy = (diff_box[0], diff_box[1])
             dims = (diff_box[2]-diff_box[0], diff_box[3]-diff_box[1])
 
-            print('partial', xy, dims)
-
             self.update(buf.tobytes(), xy, dims, mode)
 
         self.prev_frame = frame
@@ -146,7 +144,7 @@ class AutoDisplay:
         self.draw_full(DisplayModes.INIT)
 
     @classmethod
-    def _compute_diff_box(cls, a, b, round_to=2):
+    def _compute_diff_box(cls, a, b, round_to=4):
         '''
         Find the four coordinates giving the bounding box of differences between a and b
         making sure they are divisible by round_to
