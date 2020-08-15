@@ -111,8 +111,7 @@ def analyze(infile: str, *, passthru=False, dpi=0, max_zoom=0):
                 output['layersOff'] = map_types[map_type]['layersOff']
 
                 # set the suggested max zoom
-                if max_zoom == 0:
-                    max_zoom = map_types[map_type]['suggestedZoom']
+                output['maxZoom'] = map_types[map_type]['suggestedZoom']
                 break
 
     # find the size of the map
@@ -120,15 +119,16 @@ def analyze(infile: str, *, passthru=False, dpi=0, max_zoom=0):
     output['degWidth'] = max(map(lambda x: x[0], coords)) - min(map(lambda x: x[0], coords))
     output['degHeight'] = max(map(lambda x: x[1], coords)) - min(map(lambda x: x[1], coords))
 
-    # if we have a specified max zoom, figure out the DPI required to achieve this zoom
-    if max_zoom > 0:
-        dpi = math.ceil(2 ** (max_zoom + 8) / 180 * output['degHeight'] / output['size'][1] * output['dpi'])
-        output['size'] = list(map(lambda x: int(x * dpi / output['dpi']), output['size']))
-        output['dpi'] = dpi
-        output['maxZoom'] = max_zoom
+    # if we have a specified or recommended max zoom, figure out the DPI required to achieve this zoom
+    if max_zoom == 0:
+        max_zoom = output['maxZoom']
+    newdpi = math.ceil(2 ** (max_zoom + 8) / 180 * output['degHeight'] / output['size'][1] * output['dpi'])
+    output['size'] = list(map(lambda x: int(x * newdpi / output['dpi']), output['size']))
+    output['dpi'] = newdpi
+    output['maxZoom'] = max_zoom
 
     # if we have a specified DPI, figure out the maximum feasible zoom level at that DPI
-    elif dpi > 0:
+    if dpi > 0:
         output['size'] = list(map(lambda x: int(x * dpi / output['dpi']), output['size']))
         output['dpi'] = dpi
         output['maxZoom'] = int(math.log2(output['size'][1] / output['degHeight'] * 180) - 8)
