@@ -18,9 +18,9 @@ GDALTRANS = '/usr/bin/gdal_translate'
 GDALTILES = '/usr/bin/gdal2tiles.py'
 
 # understood GeoPDF types
-TYPE_USFS = 'USFS'
-TYPE_USGS = 'USGS'
-TYPE_MVUM = 'MVUM'
+TYPE_USFS = 'USFS Quad'
+TYPE_USGS = 'USGS Quad'
+TYPE_MVUM = 'USFS MVUM'
 
 # run a command and capture the output
 def capture(args: List):
@@ -217,8 +217,9 @@ def info(dpi: int, max_zoom: int, debug: bool, infile: str):
         # print out some information
         print('Filename:', analysis['filename'])
         print('Format:', analysis['format'])
+        print('Map Type:', analysis['knownType'] if analysis['knownType'] else 'Unknown')
         print('Resolution:', analysis['dpi'], 'dpi')
-        print('Size:', tuple(analysis['size']))
+        print('Rasterized Size:', tuple(analysis['size']))
         print('Zoom Levels:', '%d-%d' % (analysis['minZoom'], analysis['maxZoom']))
 
 @click.command()
