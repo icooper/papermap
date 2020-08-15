@@ -83,17 +83,20 @@ def analyze(infile: str, *, passthru=False, dpi=0, max_zoom=0):
         TYPE_USGS: {
             'layer': 'Map_Frame',
             'layersOn': None,
-            'layersOff': ['Images', 'Images.Orthoimage']
+            'layersOff': ['Images', 'Images.Orthoimage'],
+            'suggestedZoom': 16
         },
         TYPE_USFS: {
             'layer': 'Quadrangle',
             'layersOn': None,
-            'layersOff': None
+            'layersOff': None,
+            'suggestedZoom': 16
         },
         TYPE_MVUM: {
             'layer': 'Vicinity_Map',
             'layersOn': None,
-            'layersOff': None
+            'layersOff': None,
+            'suggestedZoom': 14
         }
     }
 
@@ -101,9 +104,15 @@ def analyze(infile: str, *, passthru=False, dpi=0, max_zoom=0):
     if 'layers' in gdalinfo['metadata']:
         for map_type in map_types.keys():
             if map_types[map_type]['layer'] in gdalinfo['metadata']['layers'].values():
+
+                # set some output properties
                 output['knownType'] = map_type
                 output['layersOn'] = map_types[map_type]['layersOn']
                 output['layersOff'] = map_types[map_type]['layersOff']
+
+                # set the suggested max zoom
+                if max_zoom == 0:
+                    max_zoom = map_types[map_type]['suggestedZoom']
                 break
 
     # find the size of the map
@@ -132,11 +141,11 @@ def analyze(infile: str, *, passthru=False, dpi=0, max_zoom=0):
 # rasterize a PDF into a TIFF
 def rasterize(analysis: Dict, infile: str, outfile: str):
     if analysis['format'] == 'GTiff/GeoTIFF':
-        print('Warning: Input file', infile, 'is already a GeoTIFF file.')
+        print('Warning: Input file', infile, 'is already in GeoTIFF format.')
         return infile
 
     elif not analysis['format'] == 'PDF/Geospatial PDF':
-        print('Error: Input file', infile, 'is not a GeoPDF file.')
+        print('Error: Input file', infile, 'is not in GeoPDF format.')
         return None
 
     else:
@@ -195,17 +204,22 @@ def cli():
 @click.option('--debug', default=False, is_flag=True, help='Show debug information')
 @click.argument('infile')
 def info(dpi: int, max_zoom: int, debug: bool, infile: str):
-    '''Displays georeferenced file information'''
+    '''Displays GeoPDF file information'''
     analysis = analyze(infile, passthru=debug, dpi=dpi, max_zoom=max_zoom)
     if debug:
         print(pprint.pformat(analysis, indent=4))
+
+    # is this not a GeoPDF file?
+    if analysis['format'] != 'PDF/Geospatial PDF':
+        print('Error: Input file', infile, 'is not in GeoPDF format.')
     
-    # print out some information
-    print('Filename:', analysis['filename'])
-    print('Format:', analysis['format'])
-    print('Resolution:', analysis['dpi'], 'dpi')
-    print('Size:', tuple(analysis['size']))
-    print('Zoom Levels:', '%d-%d' % (analysis['minZoom'], analysis['maxZoom']))
+    else:
+        # print out some information
+        print('Filename:', analysis['filename'])
+        print('Format:', analysis['format'])
+        print('Resolution:', analysis['dpi'], 'dpi')
+        print('Size:', tuple(analysis['size']))
+        print('Zoom Levels:', '%d-%d' % (analysis['minZoom'], analysis['maxZoom']))
 
 @click.command()
 @click.option('--dpi', default=0, help='PDF rasterizing resolution')
@@ -221,12 +235,16 @@ def tiff(dpi: int, max_zoom: int, infile: str, outfile: str):
 
     # make sure the output path is not an existing directory
     if os.path.isdir(outfile):
-        print('Error: Output file is a directory.')
+        print('Error: Output file', outfile, 'is a directory.')
 
     # rasterize the file
     else:
         analysis = analyze(infile, dpi=dpi, max_zoom=max_zoom)
-        rasterize(analysis, infile, outfile, dpi)
+
+        if analysis['format'] == 'PDF/Geospatial PDF':
+            rasterize(analysis, infile, outfile, dpi)
+        else:
+            print('Error: Input file', infile, 'is not in GeoPDF format.')
 
 @click.command()
 @click.option('--dpi', default=0, help='PDF rasterizing resolution')
@@ -235,7 +253,7 @@ def tiff(dpi: int, max_zoom: int, infile: str, outfile: str):
 @click.argument('infile')
 @click.argument('outdir', default='__auto__')
 def tileset(dpi: int, min_zoom: int, max_zoom: int, infile: str, outdir: str):
-    '''Converts GeoPDF or GeoTIFF into tileset folder'''
+    '''Converts GeoPDF into tileset folder'''
     infile_split = os.path.splitext(infile)
 
     # get output path if not specified
@@ -244,7 +262,7 @@ def tileset(dpi: int, min_zoom: int, max_zoom: int, infile: str, outdir: str):
 
     # make sure the output path is not an existing file
     if os.path.isfile(outdir):
-        print('Error: Output directory is a file.')
+        print('Error: Output directory', outdir, 'is a file.')
 
     # rasterize and generate tiles
     else:
@@ -256,8 +274,11 @@ def tileset(dpi: int, min_zoom: int, max_zoom: int, infile: str, outdir: str):
         if analysis['format'] == 'PDF/Geospatial PDF':
             infile = rasterize(analysis, infile, '%s.tiff' % infile_split[0])
 
-        # tile the TIFF file
-        tile(analysis, infile, outdir, min_zoom, max_zoom)
+            # tile the TIFF file
+            tile(analysis, infile, outdir, min_zoom, max_zoom)
+
+        else:
+            print('Error: Input file', infile, 'is not in GeoPDF format.')
 
 # main entry point
 if __name__ == '__main__':
