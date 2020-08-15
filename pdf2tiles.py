@@ -281,9 +281,34 @@ def tileset(dpi: int, min_zoom: int, max_zoom: int, infile: str, outdir: str):
         else:
             print('Error: Input file', infile, 'is not in GeoPDF format.')
 
+@click.command()
+@click.argument('FILES', nargs=-1)
+def batch(files):
+    '''Batch conversion of GeoPDF files into tilesets'''
+
+    if len(files) > 0:
+
+        # analyze each file
+        analyses = map(analyze, files)
+
+        # process each file that is a GeoPDF
+        for analysis in analyses:
+            if analysis['format'] == 'PDF/Geospatial PDF':
+                infile = analysis['filename']
+                outdir = os.path.splitext(infile)[0]
+                temptiff = '%s.tiff' % outdir
+                rasterize(analysis, infile, temptiff)
+                tile(analysis, temptiff, outdir)
+            else:
+                print('Warning: Skipping input file', analysis['filename'], 'not in GeoPDF format.')
+
+    else:
+        print("Error: No GeoPDF files specified.")
+
 # main entry point
 if __name__ == '__main__':
     cli.add_command(info)
     cli.add_command(tiff)
     cli.add_command(tileset)
+    cli.add_command(batch)
     cli()
