@@ -216,7 +216,7 @@ def tiff(dpi: int, max_zoom: int, infile: str, outfile: str):
     '''Converts GeoPDF into GeoTIFF'''
 
     # get ouptut path if not specified
-    if outfile is '__auto__':
+    if outfile == '__auto__':
         outfile = '%s.tiff' % os.path.splitext(infile)[0]
 
     # make sure the output path is not an existing directory
@@ -239,7 +239,7 @@ def tileset(dpi: int, min_zoom: int, max_zoom: int, infile: str, outdir: str):
     infile_split = os.path.splitext(infile)
 
     # get output path if not specified
-    if outdir is '__auto__':
+    if outdir == '__auto__':
         outdir = infile_split[0]
 
     # make sure the output path is not an existing file
