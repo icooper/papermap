@@ -74,7 +74,7 @@ def analyze(infile: str, *, passthru=False, dpi=0, max_zoom=0):
         'layersOff': None,
         'degWidth': 0.0,
         'degHeight': 0.0,
-        'minZoom': 10,
+        'minZoom': 5,
         'maxZoom': 14
     }
 
