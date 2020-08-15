@@ -282,23 +282,43 @@ def tileset(dpi: int, min_zoom: int, max_zoom: int, infile: str, outdir: str):
             print('Error: Input file', infile, 'is not in GeoPDF format.')
 
 @click.command()
+@click.option('--info', default=False, is_flag=True, help='Show file information in tab-delimited format')
 @click.argument('FILES', nargs=-1)
-def batch(files):
+def batch(info: bool, files):
     '''Batch conversion of GeoPDF files into tilesets'''
 
     if len(files) > 0:
+
+        if info:
+            print(
+                'Filename',
+                'Format',
+                'Map Type',
+                'Resolution',
+                'Rasterized Size',
+                'Zoom Levels',
+                sep='\t')
 
         # analyze each file
         analyses = map(analyze, files)
 
         # process each file that is a GeoPDF
         for analysis in analyses:
-            if analysis['format'] == 'PDF/Geospatial PDF':
-                infile = analysis['filename']
-                outdir = os.path.splitext(infile)[0]
-                temptiff = '%s.tiff' % outdir
-                rasterize(analysis, infile, temptiff)
-                tile(analysis, temptiff, outdir)
+            if info:
+                print(
+                    analysis['filename'],
+                    analysis['format'],
+                    analysis['knownType'] if analysis['knownType'] else 'Unknown',
+                    '%d dpi' % analysis['dpi'],
+                    tuple(analysis['size']),
+                    '%d-%d' % (analysis['minZoom'], analysis['maxZoom']),
+                    sep='\t')
+            elif analysis['format'] == 'PDF/Geospatial PDF':
+                    infile = analysis['filename']
+                    outdir = os.path.splitext(infile)[0]
+                    temptiff = '%s.tiff' % outdir
+                    rasterize(analysis, infile, temptiff)
+                    tile(analysis, temptiff, outdir)
             else:
                 print('Warning: Skipping input file', analysis['filename'], 'not in GeoPDF format.')
 
