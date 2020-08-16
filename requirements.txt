@@ -2,3 +2,5 @@ Pillow
 RPi.GPIO
 click
 cython
+werkzeug
+pymemcache
