@@ -7,7 +7,7 @@
 
             <!-- Leaflet -->
             <link rel="stylesheet" href="leaflet.css"/>
-            <script src="leaflet.js"></script>
+            <script type="text/javascript" src="leaflet.js"></script>
 
             <style>
                 body { margin:0; padding:0; }
@@ -36,48 +36,7 @@
 
         <div id="map"></div>
 
-        <script>
-        /* **** Leaflet **** */
-
-        // Base layers
-        //  .. OpenStreetMap
-        var osm = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors', minZoom: 5, maxZoom: 14});
-
-        //  .. CartoDB Positron
-        var cartodb = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>', minZoom: 5, maxZoom: 14});
-
-        //  .. OSM Toner
-        var toner = L.tileLayer('http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png', {attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.', minZoom: 5, maxZoom: 14});
-
-        //  .. White background
-        var white = L.tileLayer("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAAQMAAABmvDolAAAAA1BMVEX///+nxBvIAAAAH0lEQVQYGe3BAQ0AAADCIPunfg43YAAAAAAAAAAA5wIhAAAB9aK9BAAAAABJRU5ErkJggg==", {minZoom: 5, maxZoom: 14});
-
-        // Map
-        var map = L.map('map', {
-            center: [37.16690910059701, -101.87611661509155],
-            zoom: 14,
-            minZoom: 5,
-            maxZoom: 14,
-            layers: [osm]
-        });
-
-        var basemaps = {"OpenStreetMap": osm, "CartoDB Positron": cartodb, "Stamen Toner": toner, "Without background": white}
-
-        var overlaymaps = {
-            "Cimarron": L.tileLayer('http://localhost:8234/cimarron/{z}/{x}/{y}.png', {tms: true, opacity: 0.7, attribution: "", minZoom: 5, maxZoom: 14}),
-            "Commanche (back)": L.tileLayer('http://localhost:8234/commanche-back/{z}/{x}/{y}.png', {tms: true, opacity: 0.7, attribution: "", minZoom: 5, maxZoom: 14}),
-            "Commanche (front)": L.tileLayer('http://localhost:8234/commanche-front/{z}/{x}/{y}.png', {tms: true, opacity: 0.7, attribution: "", minZoom: 5, maxZoom: 14})
-        }
-
-        // Add base layers
-        L.control.layers(basemaps, overlaymaps, {collapsed: false}).addTo(map);
-
-        // Fit to overlay bounds (SW and NE points with (lat, lon))
-        map.fitBounds([[36.958765829623765, -101.46575864860834], [37.375052371570256, -102.28647458157475]]);
-
-        </script>
+        <script type="text/javascript" src="main.js"></script>
 
         </body>
         </html>
-
-        
