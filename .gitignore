@@ -133,3 +133,6 @@ dmypy.json
 
 # actual map data
 data/
+
+# node modules
+node_modules/
