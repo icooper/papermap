@@ -1,5 +1,6 @@
 Pillow
 RPi.GPIO
+pyserial
 click
 cython
 werkzeug
