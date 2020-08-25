@@ -31,32 +31,37 @@ else:
         sim.stop()
         exit(1)
 
+# echo off, multiplex off
+sim.AT('ATE0')
+sim.AT('CIPMUX', params=0)
+
 # wait for a registration
 sim.AT('CREG?')
 while sim.reg_status not in [1, 4]:
-    time.sleep(3.0)
+    time.sleep(30.0)
     sim.AT('CREG?')
 
 sim.AT('COPS?')
-sim.AT('CIPMUX', params=0)
 sim.AT('CSQ')
 
 # wait for a GPRS attachment
 sim.AT('CGATT?')
 while sim.gprs_status != 1:
-    time.sleep(3.0)
+    time.sleep(30.0)
     sim.AT('CGATT?')
 
 sim.AT('CSTT', params='h2g2')
 sim.AT('CIICR')
-sim.AT('CIPSTATUS')
+sim.AT('CIPSTATUS', timeout=10)
 
 # are we connected?
-if sim.ip_status == 'IP GPRSACT':
-    print('=== Data connection established')
-    sim.AT('CIFSR')
+while sim.ip_status != 'IP GPRSACT':
+    sim.AT('CIPSTATUS', timeout=10)
+
+print('=== Data connection established')
+sim.AT('CIFSR')
 
 sim.AT('CIPSHUT')
 sim.stop()
-sim.onoff()
-print('=== Module powered off')
+#sim.onoff()
+#print('=== Module powered off')

@@ -11,7 +11,7 @@ class ATCommand(ABC):
     def __init__(self, sim: SIM800, command: str=None, *, expected=True, keyword: str=None, delay=0.0):
         command = command or self.__class__.__name__
         self._sim = sim
-        self._command = command if command == 'AT' else 'AT+%s' % command
+        self._command = command if command[:2] == 'AT' else 'AT+%s' % command
         self._expected = expected
         self._keyword = keyword or '+%s:' % command
         self._delay = delay
@@ -49,10 +49,14 @@ class ATCommand(ABC):
 
 class AT(ATCommand):
     def __init__(self, sim: SIM800):
-        super(AT, self).__init__(sim, command='AT', keyword='OK')
+        super(AT, self).__init__(sim, keyword='OK')
 
     def process(self, line: str):
         return line == 'OK'
+
+class ATE0(ATCommand):
+    def __init__(self, sim: SIM800):
+        super(ATE0, self).__init__(sim, expected=False)
 
 class CSQ(ATCommand):
     def __init__(self, sim: SIM800):
@@ -90,16 +94,15 @@ class CREG(ATCommand):
 
     def process(self, line: str):
         status = 4
-        if line.startswith('+CREG: '):
-            try:
-                status = line[7:].split(',')
-                if len(status) == 2 or len(status) == 4:
-                    status = int(status[1])
-                else:
-                    status = int(status[0])
-            except OSError:
-                status = 4
-                pass
+        try:
+            status = line[7:].split(',')
+            if len(status) == 2 or len(status) == 4:
+                status = int(status[1])
+            else:
+                status = int(status[0])
+        except OSError:
+            status = 4
+            pass
         if status < 0 or status > 5:
             status = 4
         self._sim.reg_status = status
@@ -115,11 +118,10 @@ class CGATT(ATCommand):
 
     def process(self, line: str):
         status = -1
-        if line.startswith('+CGATT: '):
-            try:
-                status = int(line[8:])
-            except OSError:
-                pass
+        try:
+            status = int(line[8:])
+        except OSError:
+            pass
         self._sim.gprs_status = status
         return (status, CGATT.STAT[status])
 
@@ -150,7 +152,7 @@ class CIPMUX(ATCommand):
 
 class CIICR(ATCommand):
     def __init__(self, sim: SIM800):
-        super(CIICR, self).__init__(sim, expected=False, delay=2.0)
+        super(CIICR, self).__init__(sim, expected=False)
 
 class CPIN(ATCommand):
     def process(self, line: str):

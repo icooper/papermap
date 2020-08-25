@@ -63,7 +63,7 @@ class SIM800:
     def ip_address(self, value):
         self._ip_address = value
 
-    def AT(self, command: str='AT', *, params: Union[int, str, Iterable[str]]=None, data: str=None, return_lock=False):
+    def AT(self, command: str='AT', *, params: Union[int, str, Iterable[str]]=None, data: str=None, return_lock=False, timeout=30):
         if command[-1] == '?':
             command = command[:-1]
             params = '?'
@@ -79,8 +79,11 @@ class SIM800:
                 self._serial.flush()
                 self._queue_lock.release()
                 if return_lock == False and pending_lock:
-                    pending_lock.acquire()
-                    pending_lock.release()
+                    if pending_lock.acquire(timeout=timeout):
+                        pending_lock.release()
+                    else:
+                        pending_lock.release()
+                        self.remove_pending(pending_lock)
                 return return_lock and pending_lock
 
     def monitor(self):
@@ -93,6 +96,8 @@ class SIM800:
 
             # get the line
             line = self._serial.readline().decode('utf-8').strip()
+            if len(line) > 0:
+                print('==>', line)
 
             # check for normal stuff
             if len(line) > 0 and (' ' in line or line == 'OK'):
